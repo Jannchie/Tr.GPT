@@ -62,6 +62,7 @@ export default function Home () {
   const { trigger } = useChat()
 
   const sourceDebounced = useDebounce(source, 1000)
+  const targetLanguageDebounced = useDebounce(sourceDebounced, 1000)
 
   useEffect(() => {
     if (sourceDebounced === '') return
@@ -69,7 +70,7 @@ export default function Home () {
       messages: [
         {
           role: 'system',
-          content: `translate this text to ${targetLanguage}`,
+          content: `translate this text to ${targetLanguageDebounced}`,
         },
         {
           role: 'user',
@@ -77,7 +78,7 @@ export default function Home () {
         },
       ],
     })?.then((res) => { setTarget(res?.choices[0].message.content ?? '') })
-  }, [sourceDebounced, targetLanguage, trigger])
+  }, [sourceDebounced, targetLanguageDebounced, trigger])
 
   return (
     <>
