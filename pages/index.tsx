@@ -118,6 +118,7 @@ export default function Home () {
             </Flex>
           </Flex>
         </Flex>
+        <h2 style={{ color: 'hsl(var(--r-frontground-3))', fontSize: '0.8rem', paddingTop: '1rem' }}>{ 'Made by Jannchie<jannchie@gmail.com>' } @ { new Date().getFullYear() }</h2>
       </Container>
     </>
   )
