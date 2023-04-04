@@ -1,11 +1,84 @@
 import Head from 'next/head'
-import Image from 'next/image'
-import { Inter } from 'next/font/google'
-import styles from '@/styles/Home.module.css'
+import { Container, Flex, TextField, Textarea } from 'roku-ui'
+import { useEffect, useState } from 'react'
+import useSWRMutation, { type SWRMutationResponse } from 'swr/mutation'
+import { useDebounce } from 'usehooks-ts'
+export interface ReqBody {
+  messages: Message[]
+  model?: string
+}
 
-const inter = Inter({ subsets: ['latin'] })
+export interface Message {
+  role: 'system' | 'user' | 'assistant'
+  content: string
+}
+interface Messages { messages: Message[] }
 
-export default function Home() {
+export interface ChatResp {
+  id: string
+  object: string
+  created: number
+  model: string
+  usage: Usage
+  choices: Choice[]
+}
+
+export interface Usage {
+  prompt_tokens: number
+  completion_tokens: number
+  total_tokens: number
+}
+
+export interface Choice {
+  message: Message
+  finish_reason: string
+  index: number
+}
+
+export function useChat (): SWRMutationResponse<ChatResp, Error, Messages> {
+  const res = useSWRMutation('/api/translate', async (url, { arg }: { arg: Messages }) => {
+    const resp = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        messages: arg.messages,
+      }),
+    })
+    if (!resp.ok) {
+      // eslint-disable-next-line no-console
+      console.error(resp.statusText)
+    }
+    return await resp.json()
+  })
+  return res
+}
+
+export default function Home () {
+  const [source, setSource] = useState('')
+  const [target, setTarget] = useState('')
+  const [targetLanguage, setTargetLanguage] = useState('Chinese')
+  const { trigger } = useChat()
+
+  const sourceDebounced = useDebounce(source, 1000)
+
+  useEffect(() => {
+    if (sourceDebounced === '') return
+    void trigger({
+      messages: [
+        {
+          role: 'system',
+          content: `translate this text to ${targetLanguage}`,
+        },
+        {
+          role: 'user',
+          content: sourceDebounced,
+        },
+      ],
+    })?.then((res) => { setTarget(res?.choices[0].message.content ?? '') })
+  }, [sourceDebounced, targetLanguage, trigger])
+
   return (
     <>
       <Head>
@@ -14,110 +87,37 @@ export default function Home() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <main className={styles.main}>
-        <div className={styles.description}>
-          <p>
-            Get started by editing&nbsp;
-            <code className={styles.code}>pages/index.tsx</code>
-          </p>
-          <div>
-            <a
-              href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              By{' '}
-              <Image
-                src="/vercel.svg"
-                alt="Vercel Logo"
-                className={styles.vercelLogo}
-                width={100}
-                height={24}
-                priority
-              />
-            </a>
+      <Container >
+        <Flex direction="column" gap="1rem">
+          <div style={{ textAlign: 'center' }}>
+            <h1 style={{
+              fontSize: '2rem',
+              fontWeight: 'bold',
+            }}>
+              GPT.Translator
+            </h1>
+            <p style={{
+              fontSize: '0.8rem',
+              fontWeight: 'normal',
+              color: 'hsl(var(--r-frontground-3))',
+            }}>
+              Translate your text with GPT-3.5
+            </p>
           </div>
-        </div>
-
-        <div className={styles.center}>
-          <Image
-            className={styles.logo}
-            src="/next.svg"
-            alt="Next.js Logo"
-            width={180}
-            height={37}
-            priority
-          />
-          <div className={styles.thirteen}>
-            <Image
-              src="/thirteen.svg"
-              alt="13"
-              width={40}
-              height={31}
-              priority
-            />
-          </div>
-        </div>
-
-        <div className={styles.grid}>
-          <a
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <h2 className={inter.className}>
-              Docs <span>-&gt;</span>
-            </h2>
-            <p className={inter.className}>
-              Find in-depth information about Next.js features and&nbsp;API.
-            </p>
-          </a>
-
-          <a
-            href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <h2 className={inter.className}>
-              Learn <span>-&gt;</span>
-            </h2>
-            <p className={inter.className}>
-              Learn about Next.js in an interactive course with&nbsp;quizzes!
-            </p>
-          </a>
-
-          <a
-            href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <h2 className={inter.className}>
-              Templates <span>-&gt;</span>
-            </h2>
-            <p className={inter.className}>
-              Discover and deploy boilerplate example Next.js&nbsp;projects.
-            </p>
-          </a>
-
-          <a
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <h2 className={inter.className}>
-              Deploy <span>-&gt;</span>
-            </h2>
-            <p className={inter.className}>
-              Instantly deploy your Next.js site to a shareable URL
-              with&nbsp;Vercel.
-            </p>
-          </a>
-        </div>
-      </main>
+          <Flex gap="1rem" justify="between">
+            <Flex direction="column" gap="1rem" style={{ width: '100%' }}>
+              <h2>From</h2>
+              <TextField disabled value="Auto" />
+              <Textarea className="textarea" value={source} setValue={setSource} />
+            </Flex>
+            <Flex direction="column" gap="1rem" style={{ width: '100%' }}>
+              <h2>To</h2>
+              <TextField value={targetLanguage} setValue={setTargetLanguage} />
+              <Textarea className="textarea" value={target} setValue={setTarget} />
+            </Flex>
+          </Flex>
+        </Flex>
+      </Container>
     </>
   )
 }
