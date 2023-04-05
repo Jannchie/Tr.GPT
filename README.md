@@ -1,3 +1,3 @@
-# tr.gpt
+# Tr.GPT
 
 ![tr.gpt](preview.png)
