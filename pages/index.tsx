@@ -1,5 +1,5 @@
 import Head from 'next/head'
-import { Container, Flex, TextField, Textarea } from 'roku-ui'
+import { Anchor, Container, Flex, TextField, Textarea } from 'roku-ui'
 import { useEffect, useState } from 'react'
 import useSWRMutation, { type SWRMutationResponse } from 'swr/mutation'
 import { useDebounce } from 'usehooks-ts'
@@ -82,7 +82,7 @@ export default function Home () {
         },
         {
           role: 'user',
-          content: `Text is "${sourceDebounced}"`,
+          content: `${sourceDebounced}`,
         },
       ],
       temperature: 0.9,
@@ -130,7 +130,7 @@ export default function Home () {
             </Flex>
           </Flex>
         </Flex>
-        <h2 style={{ color: 'hsl(var(--r-frontground-3))', fontSize: '0.8rem', paddingTop: '1rem' }}>{ 'Made by Jannchie<jannchie@gmail.com>' } @ { new Date().getFullYear() }</h2>
+        <h2 style={{ color: 'hsl(var(--r-frontground-3))', fontSize: '0.8rem', paddingTop: '1rem' }}>{ 'Made by Jannchie<jannchie@gmail.com>' } @ { new Date().getFullYear() } / <Anchor href="https://github.com/Jannchie/Tr.GPT" > Repo </Anchor></h2>
       </Container>
     </>
   )
