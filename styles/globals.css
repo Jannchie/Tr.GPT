@@ -12,3 +12,55 @@
 * {
   font-family: 'Share Tech Mono';
 }
+.loading-wrapper:after {
+  transition: opacity 0.5s ease-in-out;
+}
+
+.res-wrapper {
+  position: relative;
+  line-height: 0;
+}
+
+.res-wrapper:after {
+  content: '';
+  opacity: 0;
+  position: absolute;
+  transition: opacity 0.5s ease-in-out;
+}
+
+.loading-wrapper:after {
+  --borderWidth: 1px;
+  opacity: 1;
+  top: calc(-1 * var(--borderWidth));
+  left: calc(-1 * var(--borderWidth));
+  height: calc(100% + var(--borderWidth) * 2);
+  width: calc(100% + var(--borderWidth) * 2);
+  border-radius: calc(2 * var(--borderWidth));
+  background: radial-gradient(#FFF, #FFF1, #FFF2, #FFF6, #FFFA);
+  border-radius: 1rem;
+  z-index: -1;
+  background-size: 200% 200%;
+  animation: animatedgradient 3s linear infinite;
+}
+
+@keyframes animatedgradient {
+  0% {
+    background-position: 0% 0%;
+  }
+
+  25% {
+    background-position: 0% 100%;
+  }
+
+  50% {
+    background-position: 100% 100%;
+  }
+
+  75% {
+    background-position: 100% 0%;
+  }
+
+  100% {
+    background-position: 0% 0%;
+  }
+}

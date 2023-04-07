@@ -3,16 +3,22 @@ import { Container, Flex, TextField, Textarea } from 'roku-ui'
 import { useEffect, useState } from 'react'
 import useSWRMutation, { type SWRMutationResponse } from 'swr/mutation'
 import { useDebounce } from 'usehooks-ts'
+import { franc } from 'franc'
+import lang from 'langs'
 export interface ReqBody {
   messages: Message[]
   model?: string
+  temperature?: number
 }
 
 export interface Message {
   role: 'system' | 'user' | 'assistant'
   content: string
 }
-interface Messages { messages: Message[] }
+interface Options {
+  messages: Message[]
+  temperature: number
+}
 
 export interface ChatResp {
   id: string
@@ -35,16 +41,14 @@ export interface Choice {
   index: number
 }
 
-export function useChat (): SWRMutationResponse<ChatResp, Error, Messages> {
-  const res = useSWRMutation('/api/translate', async (url, { arg }: { arg: Messages }) => {
+export function useChat (): SWRMutationResponse<ChatResp, Error, Options> {
+  const res = useSWRMutation('/api/translate', async (url, { arg }: { arg: Options }) => {
     const resp = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        messages: arg.messages,
-      }),
+      body: JSON.stringify(arg),
     })
     if (!resp.ok) {
       // eslint-disable-next-line no-console
@@ -54,16 +58,20 @@ export function useChat (): SWRMutationResponse<ChatResp, Error, Messages> {
   })
   return res
 }
-
 export default function Home () {
   const [source, setSource] = useState('')
   const [target, setTarget] = useState('')
   const [targetLanguage, setTargetLanguage] = useState('Chinese')
-  const { trigger } = useChat()
+  const { trigger, isMutating } = useChat()
 
   const sourceDebounced = useDebounce(source, 1000)
   const targetLanguageDebounced = useDebounce(targetLanguage, 1000)
-
+  const iso = franc(source, {
+    minLength: 3,
+  })
+  const languageData = lang.where('3', iso)
+  const languageName = languageData?.name ?? 'Unknown'
+  // const languages = lang.names()
   useEffect(() => {
     if (sourceDebounced === '') return
     void trigger({
@@ -74,9 +82,10 @@ export default function Home () {
         },
         {
           role: 'user',
-          content: sourceDebounced,
+          content: `Text is "${sourceDebounced}"`,
         },
       ],
+      temperature: 0.9,
     })?.then((res) => { setTarget(res?.choices[0].message.content ?? '') })
   }, [sourceDebounced, targetLanguageDebounced, trigger])
 
@@ -108,13 +117,16 @@ export default function Home () {
           <Flex gap="1rem" justify="between">
             <Flex direction="column" gap="1rem" style={{ width: '100%' }}>
               <h2>From</h2>
-              <TextField disabled value="Auto" />
+              <TextField disabled value={`Auto(${languageName})`} />
               <Textarea className="textarea" value={source} setValue={setSource} />
             </Flex>
             <Flex direction="column" gap="1rem" style={{ width: '100%' }}>
               <h2>To</h2>
               <TextField value={targetLanguage} setValue={setTargetLanguage} />
-              <Textarea className="textarea" value={target} setValue={setTarget} />
+              { /* <AutoComplete data={languages} style={{ width: '100%' }} /> */ }
+              <div style={{ position: 'relative' }} className={isMutating ? 'res-wrapper loading-wrapper' : 'res-wrapper'}>
+                <Textarea className="textarea" value={target} setValue={setTarget} />
+              </div>
             </Flex>
           </Flex>
         </Flex>
