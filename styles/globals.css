@@ -12,6 +12,7 @@
 * {
   font-family: 'Share Tech Mono';
 }
+
 .loading-wrapper:after {
   transition: opacity 0.5s ease-in-out;
 }
@@ -28,7 +29,7 @@
   transition: opacity 0.5s ease-in-out;
 }
 
-.loading-wrapper:after {
+.loading-wrapper-dark:after {
   --borderWidth: 1px;
   opacity: 1;
   top: calc(-1 * var(--borderWidth));
@@ -43,6 +44,21 @@
   animation: animatedgradient 3s linear infinite;
 }
 
+.loading-wrapper-light:after {
+  --borderWidth: 1px;
+  opacity: 1;
+  top: calc(-1 * var(--borderWidth));
+  left: calc(-1 * var(--borderWidth));
+  height: calc(100% + var(--borderWidth) * 2);
+  width: calc(100% + var(--borderWidth) * 2);
+  border-radius: calc(2 * var(--borderWidth));
+  background: radial-gradient(#0298e3, #0298e311, #0298e322, #0298e366,
+      #0298e3aa);
+  border-radius: 1rem;
+  z-index: -1;
+  background-size: 200% 200%;
+  animation: animatedgradient 3s linear infinite;
+}
 @keyframes animatedgradient {
   0% {
     background-position: 0% 0%;
