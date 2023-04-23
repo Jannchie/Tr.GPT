@@ -1,5 +1,5 @@
 import Head from 'next/head'
-import { Anchor, Container, Flex, TextField, Textarea } from 'roku-ui'
+import { Anchor, AutoComplete, Container, Flex, TextField, Textarea, useTheme } from 'roku-ui'
 import { useEffect, useState } from 'react'
 import useSWRMutation, { type SWRMutationResponse } from 'swr/mutation'
 import { useDebounce } from 'usehooks-ts'
@@ -71,7 +71,8 @@ export default function Home () {
   })
   const languageData = lang.where('3', iso)
   const languageName = languageData?.name ?? 'Unknown'
-  // const languages = lang.names()
+  const languages = lang.names()
+  const { theme } = useTheme()
   useEffect(() => {
     if (sourceDebounced === '') return
     void trigger({
@@ -88,7 +89,6 @@ export default function Home () {
       temperature: 0.9,
     })?.then((res) => { setTarget(res?.choices[0].message.content ?? '') })
   }, [sourceDebounced, targetLanguageDebounced, trigger])
-
   return (
     <>
       <Head>
@@ -122,9 +122,9 @@ export default function Home () {
             </Flex>
             <Flex direction="column" gap="1rem" style={{ width: '100%' }}>
               <h2>To</h2>
-              <TextField value={targetLanguage} setValue={setTargetLanguage} />
-              { /* <AutoComplete data={languages} style={{ width: '100%' }} /> */ }
-              <div style={{ position: 'relative' }} className={isMutating ? 'res-wrapper loading-wrapper' : 'res-wrapper'}>
+              { /* <TextField value={targetLanguage} setValue={setTargetLanguage} /> */ }
+              <AutoComplete color="primary" setValue={setTargetLanguage} options={languages} style={{ width: '100%' }} getKey={d => d} />
+              <div style={{ position: 'relative' }} className={isMutating ? `res-wrapper loading-wrapper-${theme ?? 'light'}` : 'res-wrapper'}>
                 <Textarea className="textarea" value={target} setValue={setTarget} />
               </div>
             </Flex>
