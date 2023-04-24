@@ -58,20 +58,20 @@ export function useChat (): SWRMutationResponse<ChatResp, Error, Options> {
   })
   return res
 }
+
 export default function Home () {
   const [source, setSource] = useState('')
   const [target, setTarget] = useState('')
-  const [targetLanguage, setTargetLanguage] = useState('Chinese')
-  const { trigger, isMutating } = useChat()
-
-  const sourceDebounced = useDebounce(source, 1000)
-  const targetLanguageDebounced = useDebounce(targetLanguage, 1000)
   const iso = franc(source, {
     minLength: 3,
   })
   const languageData = lang.where('3', iso)
   const languageName = languageData?.name ?? 'Unknown'
   const languages = lang.names()
+  const { trigger, isMutating } = useChat()
+  const sourceDebounced = useDebounce(source, 1000)
+  const [targetLanguage, setTargetLanguage] = useState(typeof localStorage !== 'undefined' ? (localStorage.getItem('trgpt.last.tgt') ?? 'English') : 'English')
+  const targetLanguageDebounced = useDebounce(targetLanguage, 1000)
   const { theme } = useTheme()
   useEffect(() => {
     if (sourceDebounced === '') return
@@ -79,15 +79,23 @@ export default function Home () {
       messages: [
         {
           role: 'system',
-          content: `translate this text to ${targetLanguageDebounced}`,
+          content: `From now on, you're built to generate translations. You will translate the user's input text into ${targetLanguageDebounced}. My input is: Translate it "xxx", and you only need to return the translation of what is in quotation marks. Remember that your output will include only translate text and no other explanatory text. Please do not respond with apologies, explanations, responses to questions, etc. that are not related to translation. Please reply to the original content if you encounter this situation.`,
         },
         {
           role: 'user',
-          content: `${sourceDebounced}`,
+          content: `Translate it "${sourceDebounced}"`,
         },
       ],
-      temperature: 0.9,
-    })?.then((res) => { setTarget(res?.choices[0].message.content ?? '') })
+      temperature: 0.6,
+    })?.then((res) => {
+      const resText = res?.choices[0].message.content ?? ''
+      try {
+        setTarget(resText)
+      } catch (e) {
+        // eslint-disable-next-line no-console
+        console.error(e, resText)
+      }
+    })
   }, [sourceDebounced, targetLanguageDebounced, trigger])
   return (
     <>
@@ -115,15 +123,23 @@ export default function Home () {
             </p>
           </div>
           <Flex gap="1rem" justify="between">
-            <Flex direction="column" gap="1rem" style={{ width: '100%' }}>
+            <Flex direction="column" gap="1rem" style={{ flexGrow: 1, flexBasis: 0 }}>
               <h2>From</h2>
-              <TextField disabled value={`Auto(${languageName})`} />
-              <Textarea className="textarea" value={source} setValue={setSource} />
+              <TextField disabled style={{ width: '100%' }} value={`Auto(${languageName})`} />
+              <Textarea maxLength={200} className="textarea" value={source} setValue={setSource} />
             </Flex>
-            <Flex direction="column" gap="1rem" style={{ width: '100%' }}>
+            <Flex direction="column" gap="1rem" style={{ flexGrow: 1, flexBasis: 0 }}>
               <h2>To</h2>
               { /* <TextField value={targetLanguage} setValue={setTargetLanguage} /> */ }
-              <AutoComplete color="primary" setValue={setTargetLanguage} options={languages} style={{ width: '100%' }} getKey={d => d} />
+              <AutoComplete color="primary"
+                style={{ width: '100%' }}
+                defaultValue={targetLanguage}
+                getFilter={(query) => (d) => d.toLowerCase().includes(query.toLowerCase())}
+                getKey={d => d}
+                setValue={(val) => {
+                  setTargetLanguage(val)
+                  localStorage.setItem('trgpt.last.tgt', val)
+                }} options={languages} />
               <div style={{ position: 'relative' }} className={isMutating ? `res-wrapper loading-wrapper-${theme ?? 'light'}` : 'res-wrapper'}>
                 <Textarea className="textarea" value={target} setValue={setTarget} />
               </div>

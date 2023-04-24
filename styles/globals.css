@@ -59,6 +59,7 @@
   background-size: 200% 200%;
   animation: animatedgradient 3s linear infinite;
 }
+
 @keyframes animatedgradient {
   0% {
     background-position: 0% 0%;
