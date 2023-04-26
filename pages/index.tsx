@@ -84,7 +84,7 @@ export default function Home () {
       messages: [
         {
           role: 'system',
-          content: `从现在开始，你扮演一个翻译 API。你应该把用户的输入文本翻译成 ${targetLanguageDebounced}。你只需要返回引号内的翻译而无需包括引号。记住，你的输出将只包括翻译文本，而没有其他解释文本。请不要回复与翻译无关的道歉、解释、对问题的回应等。如果你无法翻译，请回复原始内容。`,
+          content: `从现在开始，你扮演一个翻译 API。你应该把我的下一次输入的文本翻译成 ${targetLanguageDebounced}。你的回答必须只包括翻译。请不要回复与翻译无关的道歉、解释、对问题的回应等。`,
         },
         {
           role: 'user',
