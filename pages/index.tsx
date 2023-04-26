@@ -73,17 +73,22 @@ export default function Home () {
   const [targetLanguage, setTargetLanguage] = useState(typeof localStorage !== 'undefined' ? (localStorage.getItem('trgpt.last.tgt') ?? 'English') : 'English')
   const targetLanguageDebounced = useDebounce(targetLanguage, 1000)
   const { theme } = useTheme()
+  let dark = theme === 'dark'
+  if (theme === 'system' && typeof window !== 'undefined') {
+    // return preferred color scheme
+    dark = window.matchMedia('(prefers-color-scheme: dark)').matches
+  }
   useEffect(() => {
     if (sourceDebounced === '') return
     void trigger({
       messages: [
         {
           role: 'system',
-          content: `From now on, you're built to generate translations. You will translate the user's input text into ${targetLanguageDebounced}. My input is: Translate it "xxx", and you only need to return the translation of what is in quotation marks. Remember that your output will include only translate text and no other explanatory text. Please do not respond with apologies, explanations, responses to questions, etc. that are not related to translation. Please reply to the original content if you encounter this situation.`,
+          content: `从现在开始，你扮演一个翻译 API。你应该把用户的输入文本翻译成 ${targetLanguageDebounced}。你只需要返回引号内的翻译而无需包括引号。记住，你的输出将只包括翻译文本，而没有其他解释文本。请不要回复与翻译无关的道歉、解释、对问题的回应等。如果你无法翻译，请回复原始内容。`,
         },
         {
           role: 'user',
-          content: `Translate it "${sourceDebounced}"`,
+          content: `${sourceDebounced}`,
         },
       ],
       temperature: 0.6,
@@ -126,7 +131,7 @@ export default function Home () {
             <Flex direction="column" gap="1rem" style={{ flexGrow: 1, flexBasis: 0 }}>
               <h2>From</h2>
               <TextField disabled style={{ width: '100%' }} value={`Auto(${languageName})`} />
-              <Textarea maxLength={200} className="textarea" value={source} setValue={setSource} />
+              <Textarea className="textarea" value={source} setValue={setSource} />
             </Flex>
             <Flex direction="column" gap="1rem" style={{ flexGrow: 1, flexBasis: 0 }}>
               <h2>To</h2>
@@ -140,7 +145,7 @@ export default function Home () {
                   setTargetLanguage(val)
                   localStorage.setItem('trgpt.last.tgt', val)
                 }} options={languages} />
-              <div style={{ position: 'relative' }} className={isMutating ? `res-wrapper loading-wrapper-${theme ?? 'light'}` : 'res-wrapper'}>
+              <div style={{ position: 'relative' }} className={isMutating ? `res-wrapper loading-wrapper-${dark ? 'dark' : 'light'}` : 'res-wrapper'}>
                 <Textarea className="textarea" value={target} setValue={setTarget} />
               </div>
             </Flex>
